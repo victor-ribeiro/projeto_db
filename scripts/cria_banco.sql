@@ -1,15 +1,5 @@
-drop database projeto_db;
 create database projeto_db;
 USE projeto_db;
-
--- DROP TABLE HASHTAG;
--- DROP TABLE MIDIA;
--- DROP TABLE INTERACAO;
--- DROP TABLE TOPICO;
--- DROP TABLE POSTAGEM;
--- DROP TABLE LOCAL_POST;
--- DROP TABLE USUARIO;
--- DROP TABLE TWEET;
 
 create table TWEET(
 	idTWEET bigint not null primary key,
@@ -51,9 +41,7 @@ create table USUARIO (
 create table INTERACAO(
 	idINTERACAO bigint not null primary key auto_increment,
     usuario_origem bigint not null,
-    usuario_destino bigint not null -- foiram removidas as restriçoes de chave estrangeira pq os usuários que não interagem não estão na tabela de usuários. posso criar uma rotina que atualiza isso.
-    -- foreign key (usuario_origem) references USUARIO(idUSUARIO),
-    -- foreign key (usuario_destino) references USUARIO(idUSUARIO) on delete cascade
+    usuario_destino bigint not null -- foram removidas as restriçoes de chave estrangeira pq os usuários que não interagem não estão na tabela de usuários. posso criar uma rotina que atualiza isso.
 );
 
 create table TOPICO(
