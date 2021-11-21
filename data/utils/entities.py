@@ -1,41 +1,33 @@
 from os import error
-import mysql.connector
+
 from .utils import *
-
-class Connector:
-    def __init__(self, config) -> None:
-        self.config = load_json(config)
-    def connect(self):
-        conn = mysql.connector.connect(
-            user=self.config['user'],
-            password=self.config['password'],
-            host=self.config['host'],
-            database=self.config['database']
-            )
-        return conn
-
 
 class ENTITIE:
     _name = None
-    _conn = Connector('utils/config.json').connect()
     def __init__(self):
         pass
-    def insert(self):
+    def insert(self, _conn):
+        attr_names  = tuple([*self.__dict__.keys()])
+        attr_values = tuple([f'%({k})s' for k in attr_names])
+        query = f"INSERT INTO {self._name} {attr_names} VALUES {attr_values}".replace('\'', '')
         try:
             # parser da query de insercao
-            attr_names  = tuple([*self.__dict__.keys()])
-            attr_values = tuple([f'%({k})s' for k in attr_names])
-            query = f"INSERT INTO {self._name} {attr_names} VALUES {attr_values}".replace('\'', '')
-            cursor = self._conn.cursor()
+            cursor = _conn.cursor()
             cursor.execute(query, self.__dict__)
-            self._conn.commit()
+            _conn.commit()
             # fecha as conexao com o banco
             cursor.close()
             print('ok')
         except mysql.connector.errors.IntegrityError:
             print(f"[ERROR] erro de integridade:{self._name}")
-    def close(self):
-        self._conn.close()
+        except mysql.connector.errors.OperationalError:
+            self._conn = Connector('utils/config.json').connect()
+            cursor = _conn.cursor()
+            cursor.execute(query, self.__dict__)
+            _conn.commit()
+            # fecha as conexao com o banco
+            cursor.close()
+            print('ok')
 
 class HASHTAG(ENTITIE):
     _name='HASHTAG'
@@ -62,19 +54,27 @@ class LOCAL_POST(ENTITIE):
         self.coordinates.append(self.coordinates[0])
     def transform_coord(self):
         return tuple(tuple(coord) for coord in self.coordinates)
-    def insert(self) -> None:
+    def insert(self, _conn) -> None:
         try:
             coord_insert = ''.join(tuple(str(coord) for coord in self.transform_coord()))
             self.coordinates = f'ST_GeomFromText("polygon({coord_insert.replace(", ", " ").replace(")(", ", ")})")'
             query = f"INSERT INTO {self._name} (idLOCAL_POST, country, place_type, coordinates) VALUES ('{self.idLOCAL_POST}', '{self.country}', '{self.place_type}', {self.coordinates})"
             _conn = Connector('utils/config.json').connect()
-            cursor = self._conn.cursor()
+            cursor = _conn.cursor()
             cursor.execute(query)
-            self._conn.commit()
+            _conn.commit()
             # fecha as conexao com o banco
             cursor.close()
         except mysql.connector.errors.IntegrityError:
             print(f"[ERROR] erro de integridade:{self._name}")
+        except mysql.connector.errors.OperationalError:
+            self._conn = Connector('utils/config.json').connect()
+            cursor = _conn.cursor()
+            cursor.execute(query, self.__dict__)
+            _conn.commit()
+            # fecha as conexao com o banco
+            cursor.close()
+            print('ok')
 
 class MIDIA(ENTITIE):
     _name='MIDIA'

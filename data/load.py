@@ -7,9 +7,11 @@ def converte_data(dia):
     return datetime.strptime(dia, "%a %b %d %H:%M:%S %z %Y")
 
 def insert(insert_many):
+    conn = utils.Connector('utils/config.json').connect()
     for i in insert_many:
         print(f"[INSERT] {i._name}", end='\t\t-\t\t')
-        i.insert()
+        i.insert(conn)
+    conn.close()
 
 def parse_interactions(data, usuario_origem):
     edge_list = []
@@ -117,4 +119,3 @@ for file in os.listdir(DATA_DIR):
         insert_many.extend(parse_interactions(data, usuario))
 
     insert(insert_many)
-    insert_many[-1].close()

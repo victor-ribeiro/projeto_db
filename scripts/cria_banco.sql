@@ -1,3 +1,4 @@
+-- drop database projeto_db;
 create database projeto_db;
 USE projeto_db;
 
